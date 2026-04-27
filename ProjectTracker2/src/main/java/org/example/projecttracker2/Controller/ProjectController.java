@@ -43,6 +43,9 @@ public class ProjectController {
             String message = errors.getFieldError().getDefaultMessage();
             return ResponseEntity.status(400).body(message);
         }
+        if(projects.isEmpty()){
+            return ResponseEntity.status(400).body("There is no project to change");
+        }
         for(int i=0; i< projects.size(); i++){
             if(projects.get(i).getId().equals(id)){
                 updatedProject.setId(id); //so id not change
@@ -55,6 +58,9 @@ public class ProjectController {
 
     @DeleteMapping("/delete/{id}")
     public ResponseEntity<?> deleteProject(@PathVariable String id){
+        if(projects.isEmpty()){
+            return ResponseEntity.status(400).body("There is no project to delete");
+        }
         for(int i=0; i < projects.size(); i++){
             if(projects.get(i).getId().equals(id)){
                 projects.remove(i);
@@ -69,8 +75,20 @@ public class ProjectController {
         if(!status.equalsIgnoreCase("started") && !status.equalsIgnoreCase("in progress") &&!status.equalsIgnoreCase("completed")){
             return ResponseEntity.status(400).body("Status should be Started, In Progress or Completed");
         }
+        if(projects.isEmpty()){
+            return ResponseEntity.status(400).body("There is no project to change its status");
+        }
         for(Project project: projects){
             if(project.getId().equals(id)){
+                if(project.getStatus().equalsIgnoreCase("completed")){
+                    return ResponseEntity.status(400).body("Can't change status of completed project");
+                }
+                if(project.getStatus().equalsIgnoreCase("in progress") && status.equalsIgnoreCase("started")){
+                    return ResponseEntity.status(400).body("Can't change status to started when status is in progress");
+                }
+                if(project.getStatus().equalsIgnoreCase("started") && status.equalsIgnoreCase("completed")){
+                    return ResponseEntity.status(400).body("status should change to in progress first before completed");
+                }
                 project.setStatus(status);
                 return ResponseEntity.status(200).body("Status changed successfully");
             }
